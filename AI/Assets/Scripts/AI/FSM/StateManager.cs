@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class StateManager
 {
-    State currentState;
+    public State currentState;
 
     public void ChangeState(State newState)
     {

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public abstract class State
 {
+    protected CameraAgent owner;
+    public string stateName;
     public abstract void Enter();
     public abstract void Execute();
     public abstract void Exit();
