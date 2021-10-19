@@ -1719,8 +1719,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1736861050}
   - component: {fileID: 1736861051}
-  - component: {fileID: 1736861052}
   - component: {fileID: 1736861053}
+  - component: {fileID: 1736861052}
   m_Layer: 0
   m_Name: Lens
   m_TagString: Untagged
@@ -1768,15 +1768,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1736861049}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03977dbf0dc783b4ca863f4f24a9a743, type: 3}
+  m_Script: {fileID: 11500000, guid: fa4697ca85616234987be494574f6685, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startPoint: {fileID: 2051756776}
   hitMask:
     serializedVersion: 2
-    m_Bits: 64
-  startPoint: {fileID: 2051756776}
-  spherecastRadius: 4
-  spherecastLength: 20
+    m_Bits: 65
+  raycastLength: 20
+  rayResX: 10
+  rayResY: 5
+  searchArc: 115
 --- !u!114 &1736861053
 MonoBehaviour:
   m_ObjectHideFlags: 0

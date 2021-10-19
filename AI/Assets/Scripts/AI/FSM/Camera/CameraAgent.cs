@@ -6,7 +6,7 @@ public class CameraAgent : MonoBehaviour
 {
     StateManager sm = new StateManager();
 
-    SphereCastSensor sensor;
+    RayBundleSensor sensor;
 
     public Transform player;
 
@@ -19,7 +19,7 @@ public class CameraAgent : MonoBehaviour
 
     private void Awake()
     {
-        sensor = GetComponent<SphereCastSensor>();
+        sensor = GetComponent<RayBundleSensor>();
         lc = GetComponent<LightController>();
         player = GameObject.FindGameObjectWithTag("Player").transform;
     }
