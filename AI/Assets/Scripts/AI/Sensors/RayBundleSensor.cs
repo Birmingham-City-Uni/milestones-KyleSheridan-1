@@ -36,21 +36,30 @@ public class RayBundleSensor : MonoBehaviour
         Hit = false;
 
         float searchArcRad = searchArc * Mathf.Deg2Rad / 2;
-        float angleDifX = searchArcRad * 2 / (rayResX - 1);
+        //float angleDifX = searchArcRad * 2 / (rayResX - 1);
+        float angleDifY = searchArcRad * 2 / (rayResY - 1);
 
         for (int y = 0; y < rayResY; y++)
         {
+            float newSearchArc = searchArcRad * Mathf.Sin(((((float)rayResY - 1) - y) / ((float)rayResY - 1)) * Mathf.PI);
+            Debug.Log(newSearchArc);
+
+            float angleDifX = newSearchArc * 2 / (rayResX - 1);
+            //float angleDifY = newSearchArc * 2 / (rayResY - 1);
             for (int x = 0; x < rayResX; x++)
             {
                 if (!Hit)
                 {
-                    Vector3 rayDir = new Vector3(Mathf.Sin(searchArcRad - (angleDifX * x)), 0, Mathf.Cos(searchArcRad - (angleDifX * x)));
+                    Vector3 rayDir = new Vector3(
+                        Mathf.Sin(newSearchArc - (angleDifX * x)),
+                        Mathf.Sin(searchArcRad - (angleDifY * y)),
+                        Mathf.Cos(newSearchArc - (angleDifX * x)) /* * Mathf.Cos(searchArcRad - (angleDifY * y)) */
+                        );
                     rayDir.Normalize();
-                    Debug.Log(rayDir);
                     rayDir = startPoint.TransformDirection(rayDir);
                     if (Physics.Linecast(startPoint.position, startPoint.position + rayDir * raycastLength, out info, hitMask, QueryTriggerInteraction.Ignore))
                     {
-                        if(info.transform.CompareTag("Player"))
+                        if (info.transform.CompareTag("Player"))
                         {
                             Hit = true;
                         }
@@ -58,6 +67,29 @@ public class RayBundleSensor : MonoBehaviour
                 }
             }
         }
+        //float searchArcRad = searchArc * Mathf.Deg2Rad / 2;
+        //float angleDifX = searchArcRad * 2 / (rayResX - 1);
+
+        //for (int y = 0; y < rayResY; y++)
+        //{
+        //    for (int x = 0; x < rayResX; x++)
+        //    {
+        //        if (!Hit)
+        //        {
+        //            Vector3 rayDir = new Vector3(Mathf.Sin(searchArcRad - (angleDifX * x)), 0, Mathf.Cos(searchArcRad - (angleDifX * x)));
+        //            rayDir.Normalize();
+        //            Debug.Log(rayDir);
+        //            rayDir = startPoint.TransformDirection(rayDir);
+        //            if (Physics.Linecast(startPoint.position, startPoint.position + rayDir * raycastLength, out info, hitMask, QueryTriggerInteraction.Ignore))
+        //            {
+        //                if(info.transform.CompareTag("Player"))
+        //                {
+        //                    Hit = true;
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         if (Hit) return true;
 
@@ -75,19 +107,38 @@ public class RayBundleSensor : MonoBehaviour
         if (Hit) length = Vector3.Distance(this.startPoint.position, info.point);
 
         float searchArcRad = searchArc * Mathf.Deg2Rad / 2;
-        float angleDifX = searchArcRad * 2 / (rayResX - 1);
+        //float angleDifX = searchArcRad * 2 / (rayResX - 1);
         float angleDifY = searchArcRad * 2 / (rayResY - 1);
 
         for (int y = 0; y < rayResY; y++)
         {
+            float newSearchArc = searchArcRad * Mathf.Sin(((((float)rayResY - 1) - y) / ((float)rayResY - 1)) * Mathf.PI);
+            Debug.Log(newSearchArc);
+
+            float angleDifX = newSearchArc * 2 / (rayResX - 1);
+            //float angleDifY = newSearchArc * 2 / (rayResY - 1);
             for (int x = 0; x < rayResX; x++)
             {
-                Vector3 rayDir = new Vector3(Mathf.Sin(searchArcRad - (angleDifX * x)), Mathf.Sin(searchArcRad - (angleDifY * y)), Mathf.Cos(searchArcRad - (angleDifX * x) * Mathf.Cos(searchArcRad - (angleDifY * y))));
+                Vector3 rayDir = new Vector3(
+                    Mathf.Sin(newSearchArc - (angleDifX * x)),
+                    Mathf.Sin(searchArcRad - (angleDifY * y)),
+                    Mathf.Cos(newSearchArc - (angleDifX * x)) /* * Mathf.Cos(searchArcRad - (angleDifY * y)) */
+                    );
                 rayDir.Normalize();
-                Debug.Log(rayDir);
+                //Debug.Log(rayDir);
                 Gizmos.DrawLine(Vector3.zero, rayDir * length);
             }
         }
+        //for (int y = 0; y < rayResY; y++)
+        //{
+        //    for (int x = 0; x < rayResX; x++)
+        //    {
+        //        Vector3 rayDir = new Vector3(Mathf.Sin(searchArcRad - (angleDifX * x)), Mathf.Sin(searchArcRad - (angleDifY * y)), Mathf.Cos(searchArcRad - (angleDifX * x)) /** Mathf.Cos(searchArcRad - (angleDifY * y))*/);
+        //        rayDir.Normalize();
+        //        Debug.Log(rayDir);
+        //        Gizmos.DrawLine(Vector3.zero, rayDir * length);
+        //    }
+        //}
 
         Vector3 cubePoint = startPoint.InverseTransformPoint(info.point);
 
