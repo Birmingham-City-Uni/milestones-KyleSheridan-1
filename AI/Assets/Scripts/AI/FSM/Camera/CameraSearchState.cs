@@ -20,22 +20,31 @@ public class CameraSearchState : State
     public override void Execute()
     {
         //Debug.Log("Executing Search");
-        if(owner.transform.eulerAngles.y >= minTurn && owner.transform.eulerAngles.y < maxTurn - 10 && turnSpeed > 0)
+        if(owner.transform.localEulerAngles.y >= minTurn && owner.transform.localEulerAngles.y < maxTurn - 10 && turnSpeed > 0)
         {
             turnSpeed *= -1;
         }
-        else if(owner.transform.eulerAngles.y <= maxTurn && owner.transform.eulerAngles.y > minTurn + 10 && turnSpeed < 0)
+        else if(owner.transform.localEulerAngles.y <= maxTurn && owner.transform.localEulerAngles.y > minTurn + 10 && turnSpeed < 0)
         {
             turnSpeed *= -1;
         }
 
-        owner.transform.Rotate(0f, turnSpeed * Time.deltaTime, 0f, Space.World);
-
-        if(owner.transform.eulerAngles.x < startRotX - 1 || owner.transform.eulerAngles.x > startRotX + 1)
+        if (owner.transform.localEulerAngles.y > minTurn + 10 && owner.transform.localEulerAngles.y < maxTurn - 10)
         {
-            float angle = Mathf.LerpAngle(owner.transform.eulerAngles.x, startRotX, 0.01f);
-            Debug.Log(angle);
-            owner.transform.rotation = Quaternion.Euler(angle, owner.transform.eulerAngles.y, owner.transform.eulerAngles.z);
+            float angle = Mathf.LerpAngle(owner.transform.localEulerAngles.y, 0, 0.01f);
+            owner.transform.rotation = Quaternion.Euler(owner.transform.localEulerAngles.x, angle, owner.transform.localEulerAngles.z);
+        }
+        else
+        {
+            owner.transform.Rotate(0f, turnSpeed * Time.deltaTime, 0f, Space.World);
+        }
+
+        //owner.transform.Rotate(0f, turnSpeed * Time.deltaTime, 0f, Space.World);
+
+        if (owner.transform.localEulerAngles.x < startRotX - 1 || owner.transform.localEulerAngles.x > startRotX + 1)
+        {
+            float angle = Mathf.LerpAngle(owner.transform.localEulerAngles.x, startRotX, 0.01f);
+            owner.transform.rotation = Quaternion.Euler(angle, owner.transform.localEulerAngles.y, owner.transform.localEulerAngles.z);
         }
     }
 

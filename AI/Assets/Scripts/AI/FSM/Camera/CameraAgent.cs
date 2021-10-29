@@ -13,6 +13,7 @@ public class CameraAgent : MonoBehaviour
     [Header("State Colours")]
     public Color searchColour;
     public Color followColour;
+    public Color lastLocationColour;
 
     [HideInInspector]
     public LightController lc;
@@ -38,9 +39,9 @@ public class CameraAgent : MonoBehaviour
         {
             sm.ChangeState(new CameraFollowState(this, player));
         }
-        if (!sensor.Hit && sm.currentState.stateName != "Search")
+        if (!sensor.Hit && sm.currentState.stateName == "Follow")
         {
-            sm.ChangeState(new CameraSearchState(this));
+            sm.ChangeState(new CameraLastLocationState(this, player));
         }
     }
 }

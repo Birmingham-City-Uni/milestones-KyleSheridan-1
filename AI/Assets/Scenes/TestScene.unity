@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0.99999905, b: 0.99999905, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1757,7 +1757,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 0}
   searchColour: {r: 0.1764706, g: 0.6745098, b: 0.9019608, a: 1}
-  followColour: {r: 1, g: 0.007843138, b: 0.09411765, a: 0}
+  followColour: {r: 1, g: 0.007843138, b: 0.09411765, a: 1}
+  lastLocationColour: {r: 0.9019608, g: 0.6745098, b: 0.1764706, a: 1}
   lc: {fileID: 0}
 --- !u!114 &1736861052
 MonoBehaviour:
