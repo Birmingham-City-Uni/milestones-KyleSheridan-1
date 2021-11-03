@@ -4,11 +4,17 @@ using UnityEngine;
 
 public class CameraSearchState : State
 {
+    //constructor
     public CameraSearchState(CameraAgent owner) { this.owner = owner; stateName = "Search"; }
 
+    //min / max angles for the camera to turn (local space)
     public float maxTurn = 310f;
     public float minTurn = 50f;
+
+    //speed for the camera to turn
     public float turnSpeed = 10f;
+
+    //start rotation of the camera on the x axis
     public float startRotX = 40;
 
     public override void Enter()
@@ -19,7 +25,7 @@ public class CameraSearchState : State
 
     public override void Execute()
     {
-        //Debug.Log("Executing Search");
+        //if camera reaches min / max angle then change rotation direction
         if(owner.transform.localEulerAngles.y >= minTurn && owner.transform.localEulerAngles.y < maxTurn - 10 && turnSpeed > 0)
         {
             turnSpeed *= -1;
@@ -29,6 +35,7 @@ public class CameraSearchState : State
             turnSpeed *= -1;
         }
 
+        // if the camera rotation is out of normal range on y axis, lerp to original value. else rotate normally
         if (owner.transform.localEulerAngles.y > minTurn + 10 && owner.transform.localEulerAngles.y < maxTurn - 10)
         {
             float angle = Mathf.LerpAngle(owner.transform.localEulerAngles.y, 0, 0.01f);
@@ -41,6 +48,7 @@ public class CameraSearchState : State
 
         //owner.transform.Rotate(0f, turnSpeed * Time.deltaTime, 0f, Space.World);
 
+        // if camera rotation is not at the normal value on y axis, lerp to the original value
         if (owner.transform.localEulerAngles.x < startRotX - 1 || owner.transform.localEulerAngles.x > startRotX + 1)
         {
             float angle = Mathf.LerpAngle(owner.transform.localEulerAngles.x, startRotX, 0.01f);

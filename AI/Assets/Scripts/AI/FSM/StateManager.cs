@@ -6,6 +6,7 @@ public class StateManager
 {
     public State currentState;
 
+    //change the current state of the FSM
     public void ChangeState(State newState)
     {
         if (currentState != null) currentState.Exit();

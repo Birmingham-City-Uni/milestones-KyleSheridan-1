@@ -11,8 +11,10 @@ public class CameraFollowState : State
         stateName = "Follow";
     }
 
+    //reference to target for camera to follow
     public Transform target;
 
+    //speed that camera rotates
     float rotationSpeed = 1.3f;
 
     public override void Enter()
