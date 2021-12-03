@@ -6,6 +6,11 @@ public class LeafNode : TreeNode, BehaviourTreeDelegates
 {
     private BehaviourTreeDelegates.LeafNodeDelegate functionallity;
 
+    public LeafNode(BehaviourTreeDelegates.LeafNodeDelegate newFunction)
+    {
+        functionallity = newFunction;
+    }
+
     public override bool Execute()
     {
         if (functionallity != null)
@@ -14,6 +19,7 @@ public class LeafNode : TreeNode, BehaviourTreeDelegates
             return false;
     }
 
+    //remove if works
     public void SetFunctionallity(BehaviourTreeDelegates.LeafNodeDelegate newFunction)
     {
         functionallity = newFunction;

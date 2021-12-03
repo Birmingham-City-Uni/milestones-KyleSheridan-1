@@ -6,6 +6,11 @@ public abstract class CompositeNode : TreeNode
 {
     public List<TreeNode> children;
 
+    public CompositeNode()
+    {
+        children = new List<TreeNode>();
+    }
+
     public void AddChildNode(TreeNode child)
     {
         children.Add(child);
