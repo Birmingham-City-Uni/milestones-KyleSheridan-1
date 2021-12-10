@@ -57,7 +57,7 @@ public class Unit : MonoBehaviour
         {
             for(int i = targetIndex; i < path.Length; i++)
             {
-                Gizmos.color = Color.black;
+                Gizmos.color = Color.cyan;
                 Gizmos.DrawCube(path[i], Vector3.one);
 
                 if(i == targetIndex)
