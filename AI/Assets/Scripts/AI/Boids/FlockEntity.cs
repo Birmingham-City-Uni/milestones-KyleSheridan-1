@@ -9,7 +9,7 @@ public class FlockEntity : MonoBehaviour
     [HideInInspector]
     public GlobalFlock flock;
     
-    float rotSpeed = 10;
+    float rotSpeed = 10f;
     float neighbourDistance = 3f;
     bool turning = true;
 
@@ -42,7 +42,7 @@ public class FlockEntity : MonoBehaviour
             speed = Random.Range(0.5f, 3f);
         }
         //20% of frames do steering forces on each flock entity
-        if (Random.Range(0,5) < 1)
+        else if (Random.Range(0,5) < 1)
         {
             //good stuff
             GameObject[] goFish;
@@ -78,18 +78,18 @@ public class FlockEntity : MonoBehaviour
                     }
                 }
             }
-            if(groupSize >= 0)
+            if(groupSize > 0)
             {
-                vcentre = vcentre / groupSize + (goalPos - this.transform.position); // cohesion
-                speed = (gSpeed / groupSize) + Random.RandomRange(-0.1f, 0.1f);
+                vcentre = (vcentre / groupSize) + (goalPos - this.transform.position); // cohesion
+                speed = (gSpeed / groupSize) + Random.Range(-0.1f, 0.1f);
                 if(speed > 5 || speed < 0)
                 {
                     speed = Random.Range(.5f, 3f);
                 }
-                Vector3 direction = (vcentre + vavoid) - transform.position; // alignment
+                Vector3 direction = (vcentre + vavoid) - this.transform.position; // alignment
                 transform.rotation = Quaternion.Slerp(transform.rotation,
-                                                      Quaternion.LookRotation(direction),
-                                                      rotSpeed * Time.deltaTime);
+                                                        Quaternion.LookRotation(direction),
+                                                        rotSpeed * Time.deltaTime);
             }
 
         }

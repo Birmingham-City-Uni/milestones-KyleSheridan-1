@@ -5,8 +5,18 @@ using UnityEngine;
 public class GlobalFlock : MonoBehaviour
 {
     public GameObject fishPrefab;
+
+    [Header("Flock Settings")]
     public Vector3 volumeSize;
     public int numFish = 50;
+
+    [Tooltip("The amount of time before the goal pos changes (in seconds)")]
+    [Range(1, 30)]
+    public float goalPosWaitTime = 3f;
+    [Tooltip("Adds a deviation to the wait time before and after (in seconds)")]
+    public float goalWaitTimeDeviation = 1f;
+
+    [HideInInspector]
     public GameObject[] fish;
 
     public Vector3 goalPos { get; private set; }
@@ -16,11 +26,15 @@ public class GlobalFlock : MonoBehaviour
     [HideInInspector]
     public float xboundMin, yboundMin, zboundMin;
 
+    float currentWaitTime = 0;
+
     // Start is called before the first frame update
     void Start()
     {
         fish = new GameObject[numFish];
         goalPos = NewGoalPosition();
+
+        currentWaitTime = NewWaitTime(goalPosWaitTime, goalWaitTimeDeviation);
 
         xboundMax = transform.position.x + volumeSize.x / 2;
         yboundMax = transform.position.y + volumeSize.y / 2;
@@ -45,11 +59,15 @@ public class GlobalFlock : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //IMPROVE THIS
-        if(Random.Range(0, 100) < 0.1)
+        if(currentWaitTime <= 0)
         {
             goalPos = NewGoalPosition();
+            currentWaitTime = NewWaitTime(goalPosWaitTime, goalWaitTimeDeviation);
+
+            Debug.Log(currentWaitTime);
         }
+
+        currentWaitTime -= Time.deltaTime;
     }
 
     Vector3 NewGoalPosition()
@@ -57,6 +75,16 @@ public class GlobalFlock : MonoBehaviour
         return new Vector3(Random.Range((-volumeSize.x / 2) + transform.position.x, (volumeSize.x / 2) + transform.position.x),
                               Random.Range((-volumeSize.y / 2) + transform.position.y, (volumeSize.y / 2) + transform.position.y),
                               Random.Range((-volumeSize.z / 2) + transform.position.z, (volumeSize.z / 2) + transform.position.z));
+    }
+
+    float NewWaitTime(float waitTime, float deviation)
+    {
+        float minWait = waitTime - deviation;
+        float maxWait = waitTime + deviation;
+
+        minWait = Mathf.Clamp(minWait, 0.1f, waitTime);
+
+        return Random.Range(minWait, maxWait);
     }
 
     private void OnDrawGizmos()

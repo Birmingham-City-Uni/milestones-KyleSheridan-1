@@ -8,6 +8,15 @@ public class Pathfinding : MonoBehaviour
 {
     Grid grid;
 
+    public enum Algorithm
+    {
+        AStar,
+        UniformCost,
+        BestFirst
+    }
+
+    public Algorithm pathfindingAlgorithm = Algorithm.AStar;
+
     private void Awake()
     {
         grid = GetComponent<Grid>();
@@ -50,22 +59,65 @@ public class Pathfinding : MonoBehaviour
                     if (!neighbour.walkable || closedSet.Contains(neighbour))
                         continue;
 
-                    int newMovementCost = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenalty;
-                    if(newMovementCost < neighbour.gCost || !openSet.Contains(neighbour))
+                    int newMovementCost;
+
+                    switch (pathfindingAlgorithm)
                     {
-                        neighbour.gCost = newMovementCost;
-                        neighbour.hCost = GetDistance(neighbour, targetNode);
+                        case Algorithm.AStar:
+                            newMovementCost = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenalty;
+                            if(newMovementCost < neighbour.gCost || !openSet.Contains(neighbour))
+                            {
+                                neighbour.gCost = newMovementCost;
+                                neighbour.hCost = GetDistance(neighbour, targetNode);
 
-                        neighbour.parent = currentNode;
+                                neighbour.parent = currentNode;
 
-                        if (!openSet.Contains(neighbour))
-                        {
-                            openSet.Add(neighbour);
-                        }
-                        else
-                        {
-                            openSet.UpdateItem(neighbour);
-                        }
+                                if (!openSet.Contains(neighbour))
+                                {
+                                    openSet.Add(neighbour);
+                                }
+                                else
+                                {
+                                    openSet.UpdateItem(neighbour);
+                                }
+                            }
+                            break;
+                        case Algorithm.UniformCost:
+                            newMovementCost = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenalty;
+                            if (newMovementCost < neighbour.gCost || !openSet.Contains(neighbour))
+                            {
+                                neighbour.gCost = newMovementCost;
+
+                                neighbour.parent = currentNode;
+
+                                if (!openSet.Contains(neighbour))
+                                {
+                                    openSet.Add(neighbour);
+                                }
+                                else
+                                {
+                                    openSet.UpdateItem(neighbour);
+                                }
+                            }
+                            break;
+                        case Algorithm.BestFirst:
+                            newMovementCost = currentNode.hCost + GetDistance(currentNode, neighbour) + neighbour.movementPenalty;
+                            if (newMovementCost < neighbour.hCost || !openSet.Contains(neighbour))
+                            {
+                                neighbour.hCost = GetDistance(neighbour, targetNode);
+
+                                neighbour.parent = currentNode;
+
+                                if (!openSet.Contains(neighbour))
+                                {
+                                    openSet.Add(neighbour);
+                                }
+                                else
+                                {
+                                    openSet.UpdateItem(neighbour);
+                                }
+                            }
+                            break;
                     }
                 }
             }
