@@ -18,10 +18,4 @@ public class LeafNode : TreeNode, BehaviourTreeDelegates
         else
             return false;
     }
-
-    //remove if works
-    public void SetFunctionallity(BehaviourTreeDelegates.LeafNodeDelegate newFunction)
-    {
-        functionallity = newFunction;
-    }
 }
