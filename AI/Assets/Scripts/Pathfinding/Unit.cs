@@ -19,22 +19,29 @@ public class Unit : MonoBehaviour
     Path path;
 
     private Coroutine updateCoroutine;
+    private Coroutine followCoroutine;
 
     public void StartPath(Vector3 target)
     {
-        if (updateCoroutine != null)
-        {
-            StopCoroutine(updateCoroutine);
-        }
+        StopPath();
         updateCoroutine = StartCoroutine(UpdatePath(target));
     }
     public void StartPath(Transform target)
     {
+        StopPath();
+        updateCoroutine = StartCoroutine(UpdatePath(target));
+    }
+
+    public void StopPath()
+    {
         if (updateCoroutine != null)
         {
             StopCoroutine(updateCoroutine);
         }
-        updateCoroutine = StartCoroutine(UpdatePath(target));
+        if (followCoroutine != null)
+        {
+            StopCoroutine(followCoroutine);
+        }
     }
 
     public void OnPathFound(Vector3[] waypoints, bool pathSuccessful)
@@ -42,8 +49,11 @@ public class Unit : MonoBehaviour
         if (pathSuccessful)
         {
             path = new Path(waypoints, transform.position, turnDist, stoppingDst);
-            StopCoroutine("FollowPath");
-            StartCoroutine("FollowPath");
+            if (followCoroutine != null)
+            {
+                StopCoroutine(followCoroutine);
+            }
+            followCoroutine = StartCoroutine(FollowPath());
         }
     }
 

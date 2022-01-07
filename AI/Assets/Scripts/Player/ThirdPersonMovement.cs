@@ -7,7 +7,11 @@ public class ThirdPersonMovement : MonoBehaviour
     public CharacterController controller;
     public Transform cam;
 
+    Animator animator;
+
     public float speed = 6f;
+    public float runMultiplier = 1.5f;
+    public float crouchMultiplier = 0.8f;
 
     public float turnSmoothTime = 0.2f;
     float turnSmoothVelocity;
@@ -15,7 +19,8 @@ public class ThirdPersonMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        Time.timeScale = 1;
+        animator = GetComponentInChildren<Animator>();
     }
 
     // Update is called once per frame
@@ -24,6 +29,36 @@ public class ThirdPersonMovement : MonoBehaviour
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+
+        bool crouching = Input.GetButton("Crouch");
+        bool running = Input.GetButton("Run");
+
+        float multiplier = 1f;
+
+        if (crouching && !running)
+        {
+            multiplier = crouchMultiplier;
+
+            RayBundleSensor.raycastLength = 25f;
+
+            animator.SetBool("isCrouching", true);
+        }
+        else
+        {
+            RayBundleSensor.raycastLength = 30f;
+            animator.SetBool("isCrouching", false);
+        }
+
+        if (running)
+        {
+            multiplier = runMultiplier;
+
+            animator.SetBool("isRunning", true);
+        }
+        else
+        {
+            animator.SetBool("isRunning", false);
+        }
 
         if (direction.magnitude >= 0.1f)
         {
@@ -34,7 +69,13 @@ public class ThirdPersonMovement : MonoBehaviour
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
 
-            controller.Move(moveDir * speed * Time.deltaTime);
+            controller.Move(moveDir * speed * multiplier * Time.deltaTime);
+
+            animator.SetBool("isMoving", true);
+        }
+        else
+        {
+            animator.SetBool("isMoving", false);
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using UnityEngine;
 
+//Sebastian Lague - Pathfinding https://www.youtube.com/watch?v=-L-WgKMFuhE&list=PLFt_AvWsXl0cq5Umv3pMC9SPnKjfp9eGW
 public class PathRequestManager : MonoBehaviour
 {
     Queue<PathResult> results = new Queue<PathResult>();

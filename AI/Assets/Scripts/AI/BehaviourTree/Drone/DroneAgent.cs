@@ -1,14 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
 {
+    [Header("General")]
     public Transform player;
-    public Vector3[] patrolPoints;
-    public float moveSpeed;
+
+    [Header("Pursue State Setting")]
+    public GameObject bullet;
+    public float fireRate = 0.7f;
+    public float bufferTime = 0.5f;
+    [Header("Search State Setting")]
     public float searchDist = 5f;
     public float searchTime = 10f;
+    [Header("Patrol State Setting")]
+    public Vector3[] patrolPoints;
 
     //colours of the camera light to represent state
     [Header("State Colours")]
@@ -27,12 +35,15 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
     //reference to the unit component used for pathfinding
     Unit unitComponent;
 
+    AudioSource gunshotSound;
+
     //root node
     private SelectorNode rootNode;
 
     //pursue player
     private SequenceNode pursueRoot;
     private LeafNode canSeePlayer;
+    private LeafNode atPlayer;
     private LeafNode moveToPlayer;
 
     //Search last known location
@@ -47,6 +58,7 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
 
     //patrol
     private SequenceNode patrolRoot;
+    private LeafNode patrolCheck;
     private SelectorNode atLocationCheck;
     private LeafNode isAtLocation;
     private LeafNode findRandomPatrolPoint;
@@ -57,13 +69,21 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
     private Vector3 nextSearchPoint;
 
     private float patrolPointRange = 0.8f;
+    private float playerLocationRange = 10f;
     private float yOffset = 5f;
 
     private bool atLocation = true;
-    private bool atLastLocation = true;
+    private bool atSearchPoint = false;
     private bool moving = false;
     private bool pursuingPlayer = false;
     private bool lastLocation = false;
+    private bool patroling = true;
+    private bool atPlayerLocation = false;
+
+    private bool pursueBuffer = false;
+    private bool pursueBufferCheck = false;
+
+    private Coroutine shootRoutine;
 
     // Start is called before the first frame update
     void Start()
@@ -71,6 +91,7 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
         sensor = GetComponent<RayBundleSensor>();
         unitComponent = GetComponent<Unit>();
         lc = GetComponent<LightController>();
+        gunshotSound = GetComponent<AudioSource>();
 
         //root node of behaviour tree
         rootNode = new SelectorNode();
@@ -83,6 +104,10 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
         /*  */BehaviourTreeDelegates.LeafNodeDelegate canSeePlayerDelegate = CanSeePlayer;
         /*  */canSeePlayer = new LeafNode(canSeePlayerDelegate);
         /*  */pursueRoot.AddChildNode(canSeePlayer);
+
+        /*  */BehaviourTreeDelegates.LeafNodeDelegate atPlayerDelegate = AtPlayer;
+        /*  */atPlayer = new LeafNode(atPlayerDelegate);
+        /*  */pursueRoot.AddChildNode(atPlayer);
 
         //move towards the player
         /*  */BehaviourTreeDelegates.LeafNodeDelegate moveToPlayerDelegate = MoveToPlayer;
@@ -130,6 +155,10 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
         /**/patrolRoot = new SequenceNode();
         /**/rootNode.AddChildNode(patrolRoot);
 
+        /*  */BehaviourTreeDelegates.LeafNodeDelegate patrolCheckDelegate = PatrolCheck;
+        /*  */patrolCheck = new LeafNode(patrolCheckDelegate);
+        /*  */patrolRoot.AddChildNode(patrolCheck);
+
         //check if at location
         /*  */atLocationCheck = new SelectorNode();
         /*  */patrolRoot.AddChildNode(atLocationCheck);
@@ -153,6 +182,8 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
         /*  */BehaviourTreeDelegates.LeafNodeDelegate moveToNextPointDelegate = MoveToNextPatrolPoint;
         /*  */moveToNextPoint = new LeafNode(moveToNextPointDelegate);
         /*  */patrolRoot.AddChildNode(moveToNextPoint);
+
+        StartCoroutine(Shoot());
     }
 
     // Update is called once per frame
@@ -165,14 +196,17 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
     {
         if (!sensor.Hit) 
         {
+            if (pursueBuffer)
+            {
+                if (pursueBufferCheck) return true;
+
+                pursueBufferCheck = true;
+                StartCoroutine("PursueBufferStart");
+                return true;
+            }
             if (pursuingPlayer)
             {
-                pursuingPlayer = false;
-                moving = false;
-                lastLocation = true;
-                lastKnownLocation = player.position;
-                nextSearchPoint = new Vector3(lastKnownLocation.x, yOffset, lastKnownLocation.z);
-                lc.ChangeColour(lastLocationColour);
+                SetLastLocationState();
                 return false;
             }
             if (!lastLocation)
@@ -184,19 +218,63 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
 
         if (!pursuingPlayer)
         {
+            StopCoroutine("StartLastLocationTimer");
+            StopCoroutine("PursueBufferStart");
             lc.ChangeColour(pursueColour);
             moving = false;
+            patroling = false;
+            pursueBuffer = true;
+            pursueBufferCheck = false;
+            atPlayerLocation = false;
+        }
+        return true;
+    }
+
+    //sets all variable to make last location state function
+    public void SetLastLocationState()
+    {
+        StopCoroutine("StartLastLocationTimer");
+        pursuingPlayer = false;
+        moving = false;
+        StartCoroutine("StartLastLocationTimer");
+        lastKnownLocation = player.position;
+        nextSearchPoint = new Vector3(lastKnownLocation.x, yOffset, lastKnownLocation.z);
+        lc.ChangeColour(lastLocationColour);
+    }
+
+    public bool AtPlayer()
+    {
+        if (Mathf.Abs(Vector3.Distance(transform.position, player.position)) < playerLocationRange)
+        {
+            atPlayerLocation = true;
+        }
+        else
+        {
+            atPlayerLocation = false;
         }
         return true;
     }
 
     public bool MoveToPlayer()
     {
+        if (atPlayerLocation)
+        {
+            Vector3 dir = player.position - transform.position;
+            dir.Normalize();
+            unitComponent.StopPath();
+
+            Vector3 lookDir = new Vector3(dir.x, 0, dir.z);
+
+            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            transform.rotation = targetRotation;
+
+            return true;
+        }
         if(pursuingPlayer) { return true; }
         if (player != null && !moving)
         {
-            unitComponent.StartPath(player);
             pursuingPlayer = true;
+            unitComponent.StartPath(player);
             moving = true;
             return true;
         }
@@ -210,7 +288,7 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
 
     public bool IsAtLastLocation()
     {
-        return !atLastLocation;
+        return !atSearchPoint;
     }
 
     //find new search point in area
@@ -226,7 +304,7 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
 
         if (nextSearchPoint != null)
         {
-            atLocation = false;
+            atSearchPoint = false;
             return true;
         }
         else
@@ -241,8 +319,7 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
     {
         if (Mathf.Abs(Vector3.Distance(transform.position, nextSearchPoint)) < patrolPointRange)
         {
-            Debug.Log("pls Help :(");
-            atLocation = true;
+            atSearchPoint = true;
             moving = false;
             return false;
         }
@@ -263,9 +340,13 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
         return true;
     }
 
+    public bool PatrolCheck()
+    {
+        return patroling;
+    }
+
     public bool IsAtLocation()
     {
-        Debug.Log(!atLocation);
         return !atLocation;
     }
 
@@ -325,7 +406,33 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
 
         yield return new WaitForSeconds(searchTime);
 
+        patroling = true;
         lastLocation = false;
+        moving = false;
+    }
+
+    private IEnumerator PursueBufferStart()
+    {
+        yield return new WaitForSeconds(bufferTime);
+
+        pursueBuffer = false;
+
+        pursueBufferCheck = false;
+    }
+
+    private IEnumerator Shoot()
+    {
+        while (true)
+        {
+            if (atPlayerLocation)
+            {
+                Vector3 direction = player.position - transform.position;
+                direction.Normalize();
+                Instantiate(bullet, transform.position, Quaternion.LookRotation(direction));
+                gunshotSound.Play();
+            }
+            yield return new WaitForSeconds(fireRate / 1);
+        }
     }
 
     void OnDrawGizmos()
@@ -353,7 +460,7 @@ public class DroneAgent : MonoBehaviour, BehaviourTreeDelegates
         if (pursuingPlayer)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(player.position, 1f);
+            Gizmos.DrawWireSphere(player.position, playerLocationRange);
         }
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Diagnostics;
 using System;
 
+
+//Sebastian Lague - Pathfinding https://www.youtube.com/watch?v=-L-WgKMFuhE&list=PLFt_AvWsXl0cq5Umv3pMC9SPnKjfp9eGW
 public class Pathfinding : MonoBehaviour
 {
     Grid grid;

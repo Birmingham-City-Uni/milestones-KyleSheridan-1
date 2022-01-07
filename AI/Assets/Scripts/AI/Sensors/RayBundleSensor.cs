@@ -11,7 +11,7 @@ public class RayBundleSensor : MonoBehaviour
     public LayerMask hitMask;
 
     //length of rays
-    public float raycastLength = 1.0f;
+    public static float raycastLength = 30f;
 
     //the amount of rays on x and y axis
     [Range(2, 20)]

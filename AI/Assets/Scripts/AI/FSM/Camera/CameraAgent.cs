@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class CameraAgent : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class CameraAgent : MonoBehaviour
     //reference to the sensor used to detect player
     RayBundleSensor sensor;
 
+    AudioSource alarmSound;
+
     //reference to player
     public Transform player;
 
@@ -17,6 +20,10 @@ public class CameraAgent : MonoBehaviour
     public float bufferTime = 0.5f;
     //length of time of LastLocation state
     public float searchTime = 10f;
+    //the max distance to alert drones
+    public float droneAlertDist = 30f;
+    //amount of time between drones being notified
+    public float refreshTime = 2f;
 
     //colours of the camera light to represent state
     [Header("State Colours")]
@@ -27,6 +34,13 @@ public class CameraAgent : MonoBehaviour
     //script to control light
     [HideInInspector]
     public LightController lc;
+
+    //list of all drone agents in the scene
+    [HideInInspector]
+    public List<DroneAgent> drones;
+
+    //last postion of target alerted to drones (for gizmos)
+    private Vector3 lastPos;
 
     //for buffer between states
     private bool canChange = true;
@@ -42,6 +56,7 @@ public class CameraAgent : MonoBehaviour
         sensor = GetComponent<RayBundleSensor>();
         lc = GetComponent<LightController>();
         player = GameObject.FindGameObjectWithTag("Player").transform;
+        alarmSound = GetComponent<AudioSource>();
     }
 
     // Start is called before the first frame update
@@ -49,6 +64,14 @@ public class CameraAgent : MonoBehaviour
     {
         //start on search state
         sm.ChangeState(new CameraSearchState(this));
+
+        //find all drones
+        GameObject[] droneObjs = GameObject.FindGameObjectsWithTag("Drone");
+
+        foreach(GameObject drone in droneObjs)
+        {
+            drones.Add(drone.GetComponent<DroneAgent>());
+        }
     }
 
     // Update is called once per frame
@@ -66,7 +89,7 @@ public class CameraAgent : MonoBehaviour
                 {
                     StopCoroutine(searchCoroutine);
                 }
-                sm.ChangeState(new CameraFollowState(this, player));
+                sm.ChangeState(new CameraFollowState(this, player, alarmSound));
                 StartCoroutine(Buffer(bufferTime));
             }
             //if in follow state and sensor does not detect player, change to LastLocation state
@@ -102,5 +125,45 @@ public class CameraAgent : MonoBehaviour
         yield return new WaitForSeconds(waitTime);
 
         lostPlayer = true;
+    }
+
+    //alerts nearby drones every (refreshTime) seconds
+    private IEnumerator AlertDrones()
+    {
+        while (true)
+        {
+            foreach (DroneAgent drone in drones)
+            {
+                if (Vector3.Distance(transform.position, drone.transform.position) <= droneAlertDist)
+                {
+                    drone.SetLastLocationState();
+                }
+            }
+            lastPos = player.position;
+            yield return new WaitForSeconds(refreshTime);
+        }
+    }
+
+    public void StartAlert()
+    {
+        StartCoroutine("AlertDrones");
+    }
+
+    public void StopAlert()
+    {
+        StopCoroutine("AlertDrones");
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (Application.isPlaying)
+        {
+            if(sm.currentState.stateName == "Follow")
+            {
+                Gizmos.color = Color.magenta;
+
+                Gizmos.DrawWireSphere(lastPos, 2f);
+            }
+        }
     }
 }

@@ -46,8 +46,6 @@ public class CameraSearchState : State
             owner.transform.Rotate(0f, turnSpeed * Time.deltaTime, 0f, Space.World);
         }
 
-        //owner.transform.Rotate(0f, turnSpeed * Time.deltaTime, 0f, Space.World);
-
         // if camera rotation is not at the normal value on y axis, lerp to the original value
         if (owner.transform.localEulerAngles.x < startRotX - 1 || owner.transform.localEulerAngles.x > startRotX + 1)
         {
